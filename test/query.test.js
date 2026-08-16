@@ -17,3 +17,11 @@ test('prefers Stremio videoID when the route id is a video hash', () => {
 test('accepts the videoId casing used by newer clients', () => {
   assert.equal(queryFromRequest('0123456789abcdef', { videoId: 'tt1375666' }), 'tt1375666');
 });
+
+test('trims a movie release name after its year', () => {
+  assert.equal(queryFromRequest('hash', { filename: 'Project Hail Mary 2026 NORDiC 1080p AMZN WEB-DL AV1-NORViNE.mkv' }), 'Project Hail Mary 2026');
+});
+
+test('trims a series release name after its episode marker', () => {
+  assert.equal(queryFromRequest('hash', { filename: 'The.Bear.S03E01.2160p.WEB-DL.DDP5.1.H.265.mkv' }), 'The Bear S03E01');
+});
