@@ -29,6 +29,26 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 在 Stremio 中安装 `http://127.0.0.1:7000/manifest.json`。远程使用时必须部署到 Stremio 客户端能够访问的 HTTPS 地址，并把 `PUBLIC_URL` 设置成该地址。
 
+## VPS 使用预构建 Docker 镜像
+
+每次推送到 `master` 后，GitHub Actions 会构建 amd64 和 arm64 镜像：
+
+```text
+ghcr.io/wangganghj/stremio-chinese-subtitles:latest
+```
+
+复制 `compose.vps.yaml` 到 VPS，将其中的 `PUBLIC_URL` 和 `ASSRT_TOKEN` 替换为真实值，然后运行：
+
+```bash
+docker compose -f compose.vps.yaml pull
+docker compose -f compose.vps.yaml up -d
+docker compose -f compose.vps.yaml logs -f
+```
+
+首次发布后，需要在 GitHub 仓库的 Packages 页面打开该容器包，在 Package settings 中将可见性改成 Public。之后 VPS 拉取公开镜像不需要登录 GitHub。
+
+建议由 Caddy 或 Nginx 把公网 HTTPS 域名反向代理到 `127.0.0.1:7000`。`compose.vps.yaml` 含有 ASSRT Token 时不要提交回公开仓库。
+
 ## 注意事项
 
 - ASSRT Token 可在其用户面板取得；官方免费配额默认是每分钟 20 次，因此插件只在搜索时请求一次 API，用户真正选择字幕后才请求详情。
