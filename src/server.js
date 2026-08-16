@@ -9,7 +9,7 @@ import { fetchSubtitle } from './subtitle.js';
 const app = express();
 const manifest = {
   id: 'community.chinese.multi-subtitles',
-  version: '0.1.1',
+  version: '0.1.2',
   name: '中文多站字幕',
   description: '聚合 ASSRT、字幕库和 SubHD 的简体、繁体及双语字幕',
   resources: [{ name: 'subtitles', types: ['movie', 'series'], idPrefixes: ['tt'] }],
@@ -36,6 +36,10 @@ app.get('/manifest.json', (_req, res) => res.json(manifest));
 async function subtitlesHandler(req, res) {
   const query = queryFromRequest(req.params.id, parseExtra(req.params.extra));
   const settled = await Promise.allSettled([searchAssrt(query), searchZimuku(query), searchSubhd(query)]);
+  const sourceNames = ['assrt', 'zimuku', 'subhd'];
+  settled.forEach((result, index) => {
+    if (result.status === 'rejected') console.warn(`[${sourceNames[index]}] ${query}: ${result.reason?.message || result.reason}`);
+  });
   const results = settled.flatMap((x) => x.status === 'fulfilled' ? x.value : []);
   const subtitles = results.map((item, index) => ({
     id: `${item.source}-${index}-${Buffer.from(item.key).toString('base64url')}`,
