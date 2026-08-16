@@ -1,6 +1,6 @@
 import { config } from '../config.js';
 import { request } from '../http.js';
-import { languageFromText } from '../language.js';
+import { isTextSubtitle, languageFromText } from '../language.js';
 
 export async function searchAssrt(query) {
   if (!config.assrtToken || query.length < 3) return [];
@@ -8,7 +8,7 @@ export async function searchAssrt(query) {
   url.search = new URLSearchParams({ token: config.assrtToken, q: query, cnt: String(config.limit), no_muxer: '1' });
   const data = await (await request(url)).json();
   if (data.status !== 0) throw new Error(data.errmsg || `ASSRT status ${data.status}`);
-  return (data.sub?.subs || []).map((item) => ({
+  return (data.sub?.subs || []).filter((item) => isTextSubtitle(item.subtype)).map((item) => ({
     source: 'assrt',
     key: String(item.id),
     lang: languageFromText(`${item.lang?.desc || ''} ${item.subtype || ''}`),

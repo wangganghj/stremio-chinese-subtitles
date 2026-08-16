@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import { config } from '../config.js';
 import { firstWorking, request } from '../http.js';
-import { languageFromText } from '../language.js';
+import { isTextSubtitle, languageFromText } from '../language.js';
 
 export async function searchZimuku(query) {
   const { base, response } = await firstWorking(config.zimukuBases, () => `/search?q=${encodeURIComponent(query)}`);
@@ -12,6 +12,7 @@ export async function searchZimuku(query) {
     const title = $(node).text().replace(/\s+/g, ' ').trim();
     if (!href || !title || results.some((x) => x.key === new URL(href, base).href)) return;
     const context = $(node).closest('tr,li,.item,.media').text();
+    if (context && !isTextSubtitle(context)) return;
     results.push({ source: 'zimuku', key: new URL(href, base).href, lang: languageFromText(context), title });
   });
   return results.slice(0, config.limit);

@@ -9,7 +9,7 @@ import { fetchSubtitle } from './subtitle.js';
 const app = express();
 const manifest = {
   id: 'community.chinese.multi-subtitles',
-  version: '0.1.2',
+  version: '0.1.3',
   name: '中文多站字幕',
   description: '聚合 ASSRT、字幕库和 SubHD 的简体、繁体及双语字幕',
   resources: [{ name: 'subtitles', types: ['movie', 'series'], idPrefixes: ['tt'] }],
@@ -67,6 +67,14 @@ app.get('/subtitle/:source/:key.:ext', async (req, res, next) => {
 });
 
 app.get('/', (_req, res) => res.type('html').send(`<meta charset="utf-8"><h1>${manifest.name}</h1><p>安装地址：<a href="${config.publicUrl}/manifest.json">${config.publicUrl}/manifest.json</a></p><p>ASSRT：${config.assrtToken ? '已配置' : '未配置 Token'}；字幕库、SubHD：已启用</p>`));
-app.use((error, _req, res, _next) => res.status(502).json({ error: error.message }));
+app.use((error, req, res, _next) => {
+  console.error(`[request] ${req.path}: ${error.message}`);
+  if (req.path.startsWith('/subtitle/')) {
+    // Older Stremio local servers may JSON-decode an error response and then
+    // crash when treating that object as subtitle bytes. Always return text.
+    return res.status(502).type('text/plain').send(`Subtitle unavailable: ${error.message}`);
+  }
+  return res.status(502).json({ error: error.message });
+});
 
 app.listen(config.port, () => console.log(`Stremio addon: ${config.publicUrl}/manifest.json`));

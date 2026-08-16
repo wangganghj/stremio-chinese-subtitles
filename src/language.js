@@ -6,3 +6,7 @@ export function languageFromText(text = '') {
   if (/英语|英語|english|\beng\b/.test(value)) return 'eng';
   return 'zho';
 }
+
+export function isTextSubtitle(text = '') {
+  return /(?:\bsrt\b|subrip|\bass\b|\bssa\b|webvtt|\bvtt\b)/i.test(text);
+}
