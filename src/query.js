@@ -2,10 +2,11 @@ const noise = /\b(2160p|1080p|720p|480p|bluray|web[- .]?dl|webrip|hdtv|x26[45]|h
 
 export function queryFromRequest(id, extra = {}) {
   const filename = String(extra.filename || '').replace(/\.(mkv|mp4|avi|mov|m4v|ts)$/i, '');
-  let query = filename || String(id).split(':')[0];
+  const videoId = String(extra.videoID || extra.videoId || id);
+  let query = filename || videoId.split(':')[0];
   query = query.replace(noise, ' ').replace(/[._]+/g, ' ').replace(/\[[^\]]*]/g, ' ').replace(/\s+/g, ' ').trim();
-  const season = extra.season || String(id).split(':')[1];
-  const episode = extra.episode || String(id).split(':')[2];
+  const season = extra.season || videoId.split(':')[1];
+  const episode = extra.episode || videoId.split(':')[2];
   if (!filename && season && episode) query += ` S${String(season).padStart(2, '0')}E${String(episode).padStart(2, '0')}`;
   return query;
 }

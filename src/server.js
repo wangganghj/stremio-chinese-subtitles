@@ -9,10 +9,10 @@ import { fetchSubtitle } from './subtitle.js';
 const app = express();
 const manifest = {
   id: 'community.chinese.multi-subtitles',
-  version: '0.1.0',
+  version: '0.1.1',
   name: '中文多站字幕',
   description: '聚合 ASSRT、字幕库和 SubHD 的简体、繁体及双语字幕',
-  resources: ['subtitles'],
+  resources: [{ name: 'subtitles', types: ['movie', 'series'], idPrefixes: ['tt'] }],
   types: ['movie', 'series'],
   catalogs: [],
   idPrefixes: ['tt']

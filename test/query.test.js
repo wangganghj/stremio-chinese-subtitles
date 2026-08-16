@@ -9,3 +9,11 @@ test('extracts a useful query from a release filename', () => {
 test('parses Stremio semicolon extras', () => {
   assert.deepEqual(parseExtra('filename=The.Bear.S03E01.mkv;videoSize=1.json'), { filename: 'The.Bear.S03E01.mkv', videoSize: '1' });
 });
+
+test('prefers Stremio videoID when the route id is a video hash', () => {
+  assert.equal(queryFromRequest('0123456789abcdef', { videoID: 'tt0903747:5:14' }), 'tt0903747 S05E14');
+});
+
+test('accepts the videoId casing used by newer clients', () => {
+  assert.equal(queryFromRequest('0123456789abcdef', { videoId: 'tt1375666' }), 'tt1375666');
+});
