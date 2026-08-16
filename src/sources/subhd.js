@@ -48,7 +48,8 @@ export function previewToSrt(content) {
   };
   return blocks.map((item, index) => {
     const next = blocks[index + 1]?.ms;
-    const end = next == null ? item.ms + 5000 : Math.max(item.ms + 500, next - 100);
+    const naturalEnd = next == null ? item.ms + 5000 : next - 100;
+    const end = Math.max(item.ms + 500, Math.min(item.ms + 6000, naturalEnd));
     return `${index + 1}\n${stamp(item.ms)} --> ${stamp(end)}\n${item.text}`;
   }).join('\n\n');
 }
