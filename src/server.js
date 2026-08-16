@@ -18,6 +18,19 @@ const manifest = {
   idPrefixes: ['tt']
 };
 
+// Stremio clients may load remote addons from a browser/WebView origin.
+// Every addon route therefore needs permissive CORS headers.
+app.use((_req, res, next) => {
+  res.set({
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET,HEAD,OPTIONS',
+    'access-control-allow-headers': '*'
+  });
+  next();
+});
+
+app.options(/.*/, (_req, res) => res.sendStatus(204));
+
 app.get('/manifest.json', (_req, res) => res.json(manifest));
 
 async function subtitlesHandler(req, res) {
