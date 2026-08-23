@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import { config } from '../config.js';
 import { firstWorking, request } from '../http.js';
 import { languageFromText } from '../language.js';
+import { cleanSubtitleText, formatSrtTime, normalizeToSrt } from '../normalize.js';
 
 export async function searchSubhd(query) {
   const { base, response } = await firstWorking(config.subhdBases, () => `/search/${encodeURIComponent(query)}`);
@@ -37,19 +38,16 @@ export function previewToSrt(content) {
       const match = block.match(/^\[(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?]\s*\n?([\s\S]*?)\s*$/);
       if (!match) return null;
       const ms = ((Number(match[1]) * 60 + Number(match[2])) * 60 + Number(match[3])) * 1000 + Number((match[4] || '').padEnd(3, '0'));
-      return { ms, text: match[5].trim() };
+      const text = cleanSubtitleText(match[5]);
+      return { ms, text };
     }).filter((x) => x?.text);
-  const stamp = (ms) => {
-    const value = Math.max(0, ms);
-    const hours = Math.floor(value / 3600000);
-    const minutes = Math.floor(value % 3600000 / 60000);
-    const seconds = Math.floor(value % 60000 / 1000);
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${String(value % 1000).padStart(3, '0')}`;
-  };
-  return blocks.map((item, index) => {
+
+  const rawSrt = blocks.map((item, index) => {
     const next = blocks[index + 1]?.ms;
     const naturalEnd = next == null ? item.ms + 5000 : next - 100;
     const end = Math.max(item.ms + 500, Math.min(item.ms + 6000, naturalEnd));
-    return `${index + 1}\n${stamp(item.ms)} --> ${stamp(end)}\n${item.text}`;
+    return `${index + 1}\n${formatSrtTime(item.ms)} --> ${formatSrtTime(end)}\n${item.text}`;
   }).join('\n\n');
+
+  return normalizeToSrt(rawSrt);
 }

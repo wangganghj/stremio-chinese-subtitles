@@ -4,12 +4,13 @@ import { parseExtra, queryFromRequest } from './query.js';
 import { searchAssrt, resolveAssrt } from './sources/assrt.js';
 import { searchZimuku, resolveZimuku } from './sources/zimuku.js';
 import { searchSubhd, resolveSubhd } from './sources/subhd.js';
+import { normalizeToSrt } from './normalize.js';
 import { fetchSubtitle } from './subtitle.js';
 
 const app = express();
 const manifest = {
   id: 'community.chinese.multi-subtitles',
-  version: '0.1.3',
+  version: '0.1.4',
   name: '中文多站字幕',
   description: '聚合 ASSRT、字幕库和 SubHD 的简体、繁体及双语字幕',
   resources: [{ name: 'subtitles', types: ['movie', 'series'], idPrefixes: ['tt'] }],
@@ -62,7 +63,11 @@ app.get('/subtitle/:source/:key.:ext', async (req, res, next) => {
       : null;
     if (!resolved) return res.status(404).send('Unknown source');
     const subtitle = resolved.body ? resolved : await fetchSubtitle(resolved);
-    res.type(subtitle.extension === 'vtt' ? 'text/vtt' : 'text/plain').send(subtitle.body);
+    const body = normalizeToSrt(subtitle.body, subtitle.extension);
+    res.set({
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'public, max-age=86400'
+    }).send(body);
   } catch (error) { next(error); }
 });
 
